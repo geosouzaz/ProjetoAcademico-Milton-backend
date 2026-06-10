@@ -1,0 +1,100 @@
+# Implementação de Roles: ALUNO e PROFESSOR
+
+## O que foi feito
+
+O sistema passou a ter dois perfis de acesso distintos ? **ALUNO** e **PROFESSOR** ? controlados via JWT + Spring Security.
+
+---
+
+## Arquivos modificados
+
+### 1. `config/JwtUtil.java` ? Role incluída no token JWT
+
+O método `generateToken` ganhou um segundo parâmetro `role`. A role é gravada como um **claim** dentro do payload do JWT.
+
+```
+generateToken(String username, String role)
+extractRole(String token)   ? novo método
+```
+
+**Por quê?**  
+O frontend recebe o token e pode ler a role diretamente (sem nova chamada ao backend) para decidir o que exibir na tela.
+
+---
+
+### 2. `controller/AuthController.java` ? Login retorna a role
+
+Após a autenticação, a role é extraída do objeto `Authentication` (que o Spring Security preenche com as authorities do usuário) e incluída no JWT e na resposta JSON.
+
+```json
+// Resposta do POST /api/auth/login
+{
+  "token": "eyJhbGci...",
+  "role": "PROFESSOR"
+}
+```
+
+O endpoint `/api/auth/register` agora valida que a role informada seja `ALUNO` ou `PROFESSOR`. Qualquer outro valor lança erro.
+
+---
+
+### 3. `config/SecurityConfig.java` ? Regras de autorização por role
+
+As regras de acesso às URLs foram organizadas da seguinte forma:
+
+| Método HTTP | URL                  | Quem pode acessar             |
+|-------------|----------------------|-------------------------------|
+| qualquer    | `/api/auth/**`       | Público (sem token)           |
+| qualquer    | `/h2-console/**`     | Público (banco de dev)        |
+| GET         | `/**`                | `ALUNO` **ou** `PROFESSOR`    |
+| POST        | `/**`                | apenas `PROFESSOR`            |
+| PUT         | `/**`                | apenas `PROFESSOR`            |
+| DELETE      | `/**`                | apenas `PROFESSOR`            |
+
+**Resumo em linguagem simples:**
+- **ALUNO** só consegue **ler** dados (GET).
+- **PROFESSOR** tem acesso **total** (criar, editar, excluir).
+
+---
+
+### 4. `config/UsuarioDataLoader.java` ? Usuários de teste criados no boot
+
+Dois usuários são criados automaticamente na primeira vez que a aplicação sobe (banco H2 vazio):
+
+| Username    | Senha      | Role        |
+|-------------|------------|-------------|
+| `professor` | `prof123`  | PROFESSOR   |
+| `aluno`     | `aluno123` | ALUNO       |
+
+---
+
+## Fluxo completo de autenticação com roles
+
+```
+1. Cliente ? POST /api/auth/login  { username, password }
+2. Spring Security autentica ? carrega Usuario do banco ? verifica senha hash
+3. Role extraída das authorities ? incluída no JWT como claim "role"
+4. JWT retornado ao cliente junto com a role em texto
+
+5. Cliente ? GET /api/pessoas  Authorization: Bearer <token>
+6. JwtAuthFilter extrai username do token
+7. Carrega UserDetails do banco ? authorities = [ROLE_ALUNO]
+8. SecurityConfig verifica: método GET + ROLE_ALUNO ? ? permitido
+
+5b. Cliente (ALUNO) ? DELETE /api/pessoas/1
+8b. SecurityConfig verifica: método DELETE + ROLE_ALUNO ? ? 403 Forbidden
+```
+
+---
+
+## Como Spring Security mapeia a role
+
+O `UsuarioService.loadUserByUsername` usa `.roles(usuario.getRole())`.  
+O método `.roles()` do Spring **adiciona automaticamente o prefixo `ROLE_`**:
+
+```
+"PROFESSOR"  ?  ROLE_PROFESSOR
+"ALUNO"      ?  ROLE_ALUNO
+```
+
+Por isso, no `SecurityConfig` usamos `.hasRole("PROFESSOR")` (sem prefixo) e no banco armazenamos sem prefixo.
