@@ -1,0 +1,15 @@
+<div class="dashboard-welcome card">
+  <h2>Bem-vindo, {{ auth.getUsername() }}! 👋</h2>
+  <p>Perfil: <strong>{{ auth.getRole() }}</strong></p>
+</div>
+
+<div class="dashboard-grid" style="margin-top: 1.5rem;">
+  <div
+    class="dashboard-card"
+    *ngFor="let c of cards"
+    (click)="navigate(c.route)"
+  >
+    <div class="dashboard-card-icon">{{ c.icon }}</div>
+    <div class="dashboard-card-label">{{ c.label }}</div>
+  </div>
+</div>

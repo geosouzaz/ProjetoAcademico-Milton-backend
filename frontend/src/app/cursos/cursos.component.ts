@@ -2,24 +2,24 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth/auth.service';
 
-interface Pessoa {
+interface Curso {
   id?: number;
   nome: string;
-  email: string;
+  cargaHoraria: number;
   ativo: boolean;
 }
 
 @Component({
-  selector: 'app-pessoas',
-  templateUrl: './pessoas.component.html',
-  styleUrls: ['./pessoas.component.css']
+  selector: 'app-cursos',
+  templateUrl: './cursos.component.html',
+  styleUrls: ['./cursos.component.css']
 })
-export class PessoasComponent implements OnInit {
-  items: Pessoa[] = [];
+export class CursosComponent implements OnInit {
+  items: Curso[] = [];
   loading = false;
   showModal = false;
   editing = false;
-  form: Pessoa = { nome: '', email: '', ativo: true };
+  form: Curso = { nome: '', cargaHoraria: 0, ativo: true };
   toast: { msg: string; type: string } | null = null;
 
   constructor(private http: HttpClient, public auth: AuthService) {}
@@ -28,19 +28,19 @@ export class PessoasComponent implements OnInit {
 
   load() {
     this.loading = true;
-    this.http.get<Pessoa[]>('/api/pessoas').subscribe({
+    this.http.get<Curso[]>('/api/cursos').subscribe({
       next: d => { this.items = d; this.loading = false; },
-      error: () => { this.showToast('Erro ao carregar pessoas.', 'error'); this.loading = false; }
+      error: () => { this.showToast('Erro ao carregar cursos.', 'error'); this.loading = false; }
     });
   }
 
   openNew() {
-    this.form = { nome: '', email: '', ativo: true };
+    this.form = { nome: '', cargaHoraria: 0, ativo: true };
     this.editing = false;
     this.showModal = true;
   }
 
-  openEdit(item: Pessoa) {
+  openEdit(item: Curso) {
     this.form = { ...item };
     this.editing = true;
     this.showModal = true;
@@ -48,22 +48,22 @@ export class PessoasComponent implements OnInit {
 
   save() {
     if (this.editing && this.form.id != null) {
-      this.http.put(`/api/pessoas/${this.form.id}`, this.form).subscribe({
-        next: () => { this.showModal = false; this.load(); this.showToast('Pessoa atualizada!', 'success'); },
+      this.http.put(`/api/cursos/${this.form.id}`, this.form).subscribe({
+        next: () => { this.showModal = false; this.load(); this.showToast('Curso atualizado!', 'success'); },
         error: () => this.showToast('Erro ao atualizar.', 'error')
       });
     } else {
-      this.http.post('/api/pessoas', this.form).subscribe({
-        next: () => { this.showModal = false; this.load(); this.showToast('Pessoa criada!', 'success'); },
+      this.http.post('/api/cursos', this.form).subscribe({
+        next: () => { this.showModal = false; this.load(); this.showToast('Curso criado!', 'success'); },
         error: () => this.showToast('Erro ao criar.', 'error')
       });
     }
   }
 
-  remove(item: Pessoa) {
+  remove(item: Curso) {
     if (!confirm(`Excluir "${item.nome}"?`)) return;
-    this.http.delete(`/api/pessoas/${item.id}`).subscribe({
-      next: () => { this.load(); this.showToast('Pessoa excluída!', 'success'); },
+    this.http.delete(`/api/cursos/${item.id}`).subscribe({
+      next: () => { this.load(); this.showToast('Curso excluído!', 'success'); },
       error: () => this.showToast('Erro ao excluir.', 'error')
     });
   }

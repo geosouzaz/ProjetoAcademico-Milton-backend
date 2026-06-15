@@ -1,1 +1,42 @@
-<router-outlet></router-outlet>
+<!-- Login page: just the outlet -->
+<ng-container *ngIf="isLoginPage || !auth.isLoggedIn()">
+  <router-outlet></router-outlet>
+</ng-container>
+
+<!-- Authenticated shell -->
+<div class="app-shell" *ngIf="!isLoginPage && auth.isLoggedIn()">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">🎓 Sis. Acadêmico</div>
+    <nav class="sidebar-nav">
+      <a routerLink="/dashboard"   routerLinkActive="active-link">🏠 Dashboard</a>
+      <a routerLink="/pessoas"     routerLinkActive="active-link">👥 Pessoas</a>
+      <a routerLink="/cursos"      routerLinkActive="active-link">📚 Cursos</a>
+      <a routerLink="/disciplinas" routerLinkActive="active-link">📋 Disciplinas</a>
+      <a routerLink="/professores" routerLinkActive="active-link">👨‍🏫 Professores</a>
+      <a routerLink="/turmas"      routerLinkActive="active-link">🏫 Turmas</a>
+      <a routerLink="/matriculas"  routerLinkActive="active-link">📝 Matrículas</a>
+      <a routerLink="/avaliacoes"  routerLinkActive="active-link">⭐ Avaliações</a>
+    </nav>
+  </aside>
+
+  <!-- Main area -->
+  <div class="main-area">
+    <!-- Topbar -->
+    <header class="topbar">
+      <span class="topbar-user">
+        Olá, <strong>{{ auth.getUsername() }}</strong>
+        &nbsp;·&nbsp;
+        <em>{{ auth.getRole() }}</em>
+      </span>
+      <button class="btn-logout" (click)="auth.logout()">Sair</button>
+    </header>
+
+    <!-- Routed content -->
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+</div>

@@ -2,24 +2,24 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth/auth.service';
 
-interface Pessoa {
+interface Turma {
   id?: number;
   nome: string;
-  email: string;
+  semestre: string;
   ativo: boolean;
 }
 
 @Component({
-  selector: 'app-pessoas',
-  templateUrl: './pessoas.component.html',
-  styleUrls: ['./pessoas.component.css']
+  selector: 'app-turmas',
+  templateUrl: './turmas.component.html',
+  styleUrls: ['./turmas.component.css']
 })
-export class PessoasComponent implements OnInit {
-  items: Pessoa[] = [];
+export class TurmasComponent implements OnInit {
+  items: Turma[] = [];
   loading = false;
   showModal = false;
   editing = false;
-  form: Pessoa = { nome: '', email: '', ativo: true };
+  form: Turma = { nome: '', semestre: '', ativo: true };
   toast: { msg: string; type: string } | null = null;
 
   constructor(private http: HttpClient, public auth: AuthService) {}
@@ -28,19 +28,19 @@ export class PessoasComponent implements OnInit {
 
   load() {
     this.loading = true;
-    this.http.get<Pessoa[]>('/api/pessoas').subscribe({
+    this.http.get<Turma[]>('/api/turmas').subscribe({
       next: d => { this.items = d; this.loading = false; },
-      error: () => { this.showToast('Erro ao carregar pessoas.', 'error'); this.loading = false; }
+      error: () => { this.showToast('Erro ao carregar turmas.', 'error'); this.loading = false; }
     });
   }
 
   openNew() {
-    this.form = { nome: '', email: '', ativo: true };
+    this.form = { nome: '', semestre: '', ativo: true };
     this.editing = false;
     this.showModal = true;
   }
 
-  openEdit(item: Pessoa) {
+  openEdit(item: Turma) {
     this.form = { ...item };
     this.editing = true;
     this.showModal = true;
@@ -48,22 +48,22 @@ export class PessoasComponent implements OnInit {
 
   save() {
     if (this.editing && this.form.id != null) {
-      this.http.put(`/api/pessoas/${this.form.id}`, this.form).subscribe({
-        next: () => { this.showModal = false; this.load(); this.showToast('Pessoa atualizada!', 'success'); },
+      this.http.put(`/api/turmas/${this.form.id}`, this.form).subscribe({
+        next: () => { this.showModal = false; this.load(); this.showToast('Turma atualizada!', 'success'); },
         error: () => this.showToast('Erro ao atualizar.', 'error')
       });
     } else {
-      this.http.post('/api/pessoas', this.form).subscribe({
-        next: () => { this.showModal = false; this.load(); this.showToast('Pessoa criada!', 'success'); },
+      this.http.post('/api/turmas', this.form).subscribe({
+        next: () => { this.showModal = false; this.load(); this.showToast('Turma criada!', 'success'); },
         error: () => this.showToast('Erro ao criar.', 'error')
       });
     }
   }
 
-  remove(item: Pessoa) {
+  remove(item: Turma) {
     if (!confirm(`Excluir "${item.nome}"?`)) return;
-    this.http.delete(`/api/pessoas/${item.id}`).subscribe({
-      next: () => { this.load(); this.showToast('Pessoa excluída!', 'success'); },
+    this.http.delete(`/api/turmas/${item.id}`).subscribe({
+      next: () => { this.load(); this.showToast('Turma excluída!', 'success'); },
       error: () => this.showToast('Erro ao excluir.', 'error')
     });
   }
